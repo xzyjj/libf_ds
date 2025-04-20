@@ -1,0 +1,97 @@
+# c language template
+
+__START = @echo @start: $(@)
+__ECHO = @echo
+__MAKE = make
+__RM = rm
+__MKDIR = mkdir
+__SHELL = sh
+__MAKEFILE = make -f Makefile.c.template
+
+__C_SOURCES_DS = avltree.c avltree_wrap.c \
+	rbtree.c rbtree_wrap.c \
+	list.c
+__C_OBJECTS_DS = $(__C_SOURCES_DS:.c=.o)
+
+__C_SOURCES_SL = xstdlib_random.c
+__C_OBJECTS_SL = $(__C_SOURCES_SL:.c=.o)
+
+__C_SOURCES =
+__C_ASSEMBLYS =
+__C_OBJECTS = $(__C_OBJECTS_DS) \
+	 $(__C_OBJECTS_SL)
+__C_ASSEMBLY_OBJECTS =
+
+__C_LIBRARYS = libf_ds.a libf_sl.a
+
+__C_PROGRAMS = test_bench_avltree \
+	test_bench_rbtree \
+	test_bench_list
+
+__C_FLAGS = -O1 -g -std=c99 -Wall -Wextra \
+	-Wpedantic -Wno-format-pedantic -Wno-trigraphs \
+	-fno-builtin -fno-inline-functions \
+	-finline-hint-functions
+__C_LDFLAGS =
+__C_INCDIR =
+__C_LIBDIR =
+
+__C_COMPILER = gcc $(__C_FLAGS) $(__C_INCDIR)
+__C_COMPILER_SHARED = $(__C_COMPILER) -fPIE
+__C_ASSEMBLER = $(__C_COMPILER)
+__C_ASSEMBLER_SHARED = $(__C_COMPILER_SHARED)
+__C_LINLER = gcc $(__C_LDFLAGS) $(__C_LIBDIR)
+__C_STATICLIB = ar cr
+__C_SHAREDLIB = $(__C_LINLER) -fPIE
+
+.PHONY: default
+default: all_hook
+
+.PHONY: all_hook
+all_hook:
+	$(__START)
+	$(__MAKEFILE) all
+
+.PHONY: all
+all: $(__C_LIBRARYS) $(__C_PROGRAMS)
+	$(__START)
+
+libf_ds.a: $(__C_OBJECTS_DS)
+	$(__START)
+	$(__C_STATICLIB) $(@) $(^)
+
+libf_sl.a: $(__C_OBJECTS_SL)
+	$(__START)
+	$(__C_STATICLIB) $(@) $(^)
+
+test_bench_avltree: libf_ds.a libf_sl.a test_bench_avltree.c
+	$(__START)
+	$(__C_COMPILER) -o $(@) $(^)
+
+test_bench_rbtree: libf_ds.a libf_sl.a test_bench_rbtree.c
+	$(__START)
+	$(__C_COMPILER) -o $(@) $(^)
+
+test_bench_list: libf_ds.a libf_sl.a test_bench_list.c
+	$(__START)
+	$(__C_COMPILER) -o $(@) $(^)
+
+.PHONY: clean
+clean:
+	$(__START)
+	$(__RM) -f $(__C_OBJECTS) \
+		$(__C_LIBRARYS) \
+		$(__C_PROGRAMS)
+
+.PHONY: clean_obj
+clean_obj:
+	$(__START)
+	$(__RM) -f $(__C_OBJECTS)
+
+%.o: %.c
+	$(__START)
+	$(__C_COMPILER) -c -o $(@) $(^)
+
+%.o: %.S
+	$(__START)
+	$(__C_COMPILER) -c -o $(@) $(^)
